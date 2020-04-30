@@ -39,5 +39,6 @@ struct Node{
 
 // codegen
 Node* primary();
+Node* unary();
 Node* mul();
 Node* expr();

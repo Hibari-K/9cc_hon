@@ -169,16 +169,26 @@ Node *primary(){
     return new_node_num(expect_number());
 }
 
-// mul = primary ("*" primary | "/" primary)*
+// unary = ("+" | "-")? primary
+Node* unary(){
+    if(expectAndConsume('+'))
+        return primary(); // +1 = 1
+    if(expectAndConsume('-'))
+        return new_node(ND_SUB, new_node_num(0), primary());
+    return primary();
+}
+
+//    mul = primary ("*" primary | "/" primary)*
+// => mul = unary ("*" unary | "/" unary)*
 Node *mul(){
 
-    Node *node = primary();
+    Node *node = unary();
 
     for(;;){
         if(expectAndConsume('*'))
-            node = new_node(ND_MUL, node, primary());
+            node = new_node(ND_MUL, node, unary());
         else if(expectAndConsume('/'))
-            node = new_node(ND_DIV, node, primary());
+            node = new_node(ND_DIV, node, unary());
         else 
             return node;
     }
