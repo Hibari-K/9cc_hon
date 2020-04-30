@@ -5,31 +5,30 @@
 #include<stdbool.h>
 #include<string.h>
 
-// kind of token
-typedef enum{
-    TK_RESERVED, // symbol e.g., '+'
-    TK_NUM,
-    TK_EOF,
-} TokenKind;
-
-typedef struct Token Token;
-
-// token
-struct Token{
-    TokenKind kind;
-    Token *next;
-    int val;
-    char *str;
-};
+#include "9cc.h"
 
 // Current token
 Token *token;
 
+// input
+char *user_input;
+
 // error function
-void error(char *fmt, ...){
+void error_at(char *loc, char *fmt, ...){
 
     va_list ap; // variable array
     va_start(ap, fmt);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, "");
+    // above code is equivalent to C like so: 
+    /*
+        int i;
+        for(i=0; i<pos; i++)
+            fprintf(stderr, " ");
+    */
+    fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
 
@@ -61,7 +60,7 @@ void debug_token(){
 void expect(char op){
 
     if(token->kind != TK_RESERVED || token->str[0] != op)
-        error("Expected OP is not '%c'", op);
+        error_at(token->str, "Expected OP is not '%c'", op);
     token = token->next;
 }
 
@@ -73,7 +72,7 @@ int expect_number(){
     //printf("expect_number_str: %s\n", token->str);
 
     if(token->kind != TK_NUM)
-        error("Token is not a number");
+        error_at(token->str, "Token is not a number");
     
     //int val = token->val;
     int val = strtol(token->str, NULL, 10);
@@ -125,7 +124,7 @@ Token *tokenize(char *p){
             continue;
         }
 
-        error("cannot tokenize");
+        error_at(token->str, "cannot tokenize");
     }
 
     new_token(TK_EOF, cur, p);
@@ -141,6 +140,7 @@ int main(int argc, char **argv){
         return 1;
     }
 
+    user_input = argv[1];
     token = tokenize(argv[1]);
     //debug_token();
 
