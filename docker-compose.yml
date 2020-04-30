@@ -1,0 +1,11 @@
+version: '3'
+services:
+  9cc:
+    build: .
+    image: 9cc-img
+    container_name: 9cc
+    working_dir: "/home/hibari"
+    volumes:
+     - .:/home/hibari
+    tty: true
+
