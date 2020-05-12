@@ -37,9 +37,9 @@ void error_at(char *loc, char *fmt, ...){
 
 // eat symbol and return true
 // otherwise, do not eat and return false
-bool expectAndConsume(char op){
+bool expectAndConsume(char *op){
 
-    if(token->kind != TK_RESERVED || token->str[0] != op)
+    if(token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
         return false;
     
     token = token->next;
@@ -57,10 +57,10 @@ void debug_token(){
 
 // if expected token, eat token
 // otherwise, alert error
-void expect(char op){
+void expect(char *op){
 
-    if(token->kind != TK_RESERVED || token->str[0] != op)
-        error_at(token->str, "Expected OP is not '%c'", op);
+    if(token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
+        error_at(token->str, "Expected OP is not '%s'", op);
     token = token->next;
 }
 
@@ -86,15 +86,22 @@ bool at_eof(){
 }
 
 // create new token and append to cur
-Token *new_token(TokenKind kind, Token *cur, char *str){
+Token *new_token(TokenKind kind, Token *cur, char *str, int len){
 
     Token *tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
     cur->next = tok;
+    tok->len = len;
 
     return tok;
 }
+
+
+bool startswith(char *p, char *q){
+    return memcmp(p, q, strlen(q)) == 0;
+}
+
 
 Token *tokenize(char *p){
     Token head;
@@ -111,16 +118,26 @@ Token *tokenize(char *p){
 
         /* debug */
         //printf("tokenize: %s\n", p);
+        // multi-letter punctuator
+        if(startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")){
 
-        if(*p == '+' || *p == '-' || *p == '*' || *p == '/'){
-            cur = new_token(TK_RESERVED, cur, p);
-            p++;
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
             continue;
         }
 
+        // Single-letter punctuator
+        if(strchr("+-*/()<>", *p)){
+            cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+
+
         if(isdigit(*p)){
-            cur = new_token(TK_NUM, cur, p);
+            cur = new_token(TK_NUM, cur, p, 0);
+            char *q = p; // q is tmp value for len
             cur->val = strtol(p, &p, 10);
+            cur->len = p - q;
             continue;
         }
 
@@ -129,13 +146,13 @@ Token *tokenize(char *p){
         exit(1);
     }
 
-    new_token(TK_EOF, cur, p);
+    new_token(TK_EOF, cur, p, 0);
     return head.next;
 }
 
 
 /** Node **/
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
+Node *new_binary(NodeKind kind, Node *lhs, Node *rhs){
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
     node->lhs = lhs;
@@ -159,9 +176,9 @@ Node *new_node_num(int val){
 Node *primary(){
 
     // if next token is "(", the expected node is '"(" expr ")"'
-    if(expectAndConsume('(')){
+    if(expectAndConsume("(")){
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
 
@@ -171,10 +188,10 @@ Node *primary(){
 
 // unary = ("+" | "-")? primary
 Node* unary(){
-    if(expectAndConsume('+'))
+    if(expectAndConsume("+"))
         return primary(); // +1 = 1
-    if(expectAndConsume('-'))
-        return new_node(ND_SUB, new_node_num(0), primary());
+    if(expectAndConsume("-"))
+        return new_binary(ND_SUB, new_node_num(0), primary());
     return primary();
 }
 
@@ -185,30 +202,69 @@ Node *mul(){
     Node *node = unary();
 
     for(;;){
-        if(expectAndConsume('*'))
-            node = new_node(ND_MUL, node, unary());
-        else if(expectAndConsume('/'))
-            node = new_node(ND_DIV, node, unary());
+        if(expectAndConsume("*"))
+            node = new_binary(ND_MUL, node, unary());
+        else if(expectAndConsume("/"))
+            node = new_binary(ND_DIV, node, unary());
         else 
             return node;
     }
 }
 
-// expr = mul ("+" mul | "-" mul)*
-Node *expr(){
-    
+
+//add        = mul ("+" mul | "-" mul)*
+Node* add(){
+
     Node *node = mul();
 
     for(;;){
-        if(expectAndConsume('+')){
-            node = new_node(ND_ADD, node, mul());
-        }
-        else if(expectAndConsume('-')){
-            node = new_node(ND_SUB, node, mul());
-        }
+        if(expectAndConsume("+"))
+            node = new_binary(ND_ADD, node, mul());
+        if(expectAndConsume("-"))
+            node = new_binary(ND_SUB, node, mul());
+        return node;
+    }
+}
+
+//relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+Node* relational(){
+
+    Node *node = add();
+
+    for(;;){
+        if(expectAndConsume("<"))
+            node = new_binary(ND_LT, node, add());
+        else if(expectAndConsume("<="))
+            node = new_binary(ND_LE, node, add());
+        else if(expectAndConsume(">"))
+            node = new_binary(ND_LT, add(), node);
+        else if(expectAndConsume(">="))
+            node = new_binary(ND_LE, add(), node);
         else
             return node;
     }
+}
+
+//equality   = relational ("==" relational | "!=" relational)*
+Node* equality(){
+
+    Node* node = relational();
+
+    for(;;){
+
+        if(expectAndConsume("=="))
+            node = new_binary(ND_EQ, node, relational());
+        else if(expectAndConsume("!="))
+            node = new_binary(ND_NE, node, relational());
+        else
+            return node;
+    }
+}
+
+// expr = equality
+Node *expr(){
+    
+    return equality();
 }
 
 void codegen(Node *node){
@@ -237,6 +293,26 @@ void codegen(Node *node){
         case ND_DIV:
             puts("    cqo");
             puts("    idiv rdi");
+            break;
+        case ND_EQ:
+            puts("    cmp rax, rdi");
+            puts("    sete al");
+            puts("    movzb rax, al");
+            break;
+        case ND_NE:
+            puts("    cmp rax, rdi");
+            puts("    setne al");
+            puts("    movzb rax, al");
+            break;
+        case ND_LT:
+            puts("    cmp rax, rdi");
+            puts("    setl al");
+            puts("    movzb rax, al");
+            break;
+        case ND_LE:
+            puts("    cmp rax, rdi");
+            puts("    setle al");
+            puts("    movzb rax, al");
             break;
     }
 
