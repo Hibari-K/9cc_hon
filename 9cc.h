@@ -1,3 +1,10 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<ctype.h>
+#include<stdarg.h>
+#include<stdbool.h>
+#include<string.h>
+
 
 // kind of token
 typedef enum{
@@ -16,6 +23,9 @@ struct Token{
     char *str;
     int len; // token length
 };
+
+extern char *user_input;
+extern Token *token;
 
 
 // kind of AST node
@@ -50,3 +60,21 @@ Node* add();
 Node* relational();
 Node* equality();
 Node* expr();
+
+
+// parse
+void error_at(char *loc, char *fmt, ...);
+bool expectAndConsume(char *op);
+void debug_token();
+void expect(char *op);
+int expect_number();
+bool at_eof();
+Token *new_token(TokenKind kind, Token *cur, char *str, int len);
+bool startswith(char *p, char *q);
+Token *tokenize(char *p);
+Node *new_binary(NodeKind kind, Node *lhs, Node *rhs);
+Node *new_node_num(int val);
+
+
+// codegen
+void codegen(Node *node);

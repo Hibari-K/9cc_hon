@@ -1,14 +1,15 @@
 CC=gcc
 CFLAGS=-std=c11 -g -static
 TARGET=9cc
-SRC=9cc.c
-OBJ:=$(SRCS:.c=.o)
+SRCS=$(wildcard *.c)
+OBJS:=$(SRCS:.c=.o)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
-test:
+test: $(TARGET)
 	./test.sh
 
 clean:
