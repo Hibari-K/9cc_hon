@@ -13,6 +13,6 @@ test: $(TARGET)
 	./test.sh
 
 clean:
-	rm -f $(OBJ) $(TARGET) tmp*
+	rm -f $(OBJS) $(TARGET) tmp*
 
 .PHONY:	test clean

@@ -13,16 +13,9 @@ int main(int argc, char **argv){
     token = tokenize(argv[1]);
     //debug_token();
 
-    Node *node = expr();
+    Node *node = program();
 
-    printf(".intel_syntax noprefix\n" \
-           ".global main\n" \
-           "main:\n");
-    
-    codegen(node);
-
-    puts("    pop rax");
-    puts("    ret");
+    codegenFirst(node);
 
     return 0;
 }

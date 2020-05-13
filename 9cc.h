@@ -9,6 +9,7 @@
 // kind of token
 typedef enum{
     TK_RESERVED, // symbol e.g., '+'
+    TK_IDENT, // variable
     TK_NUM,
     TK_EOF,
 } TokenKind;
@@ -34,6 +35,10 @@ typedef enum{
     ND_SUB,
     ND_MUL,
     ND_DIV,
+    ND_ASSIGN, // =
+    ND_VAR, // local variable
+    ND_RETURN, //return
+    ND_EXPR_STMT,
     ND_EQ, // ==
     ND_NE, // !=
     ND_LT, // <
@@ -46,9 +51,11 @@ typedef struct Node Node;
 // AST node type
 struct Node{
     NodeKind kind;
+    Node *next;
     Node *lhs; // left hand side
     Node *rhs; // right hand side
-    int val;
+    long val; // used if ND_NUM
+    char name; // used if ND_LVAR
 };
 
 
@@ -59,12 +66,16 @@ Node* mul();
 Node* add();
 Node* relational();
 Node* equality();
+Node* assign();
 Node* expr();
-
+Node* stmt();
+Node* program();
 
 // parse
+void error(char *str);
 void error_at(char *loc, char *fmt, ...);
 bool expectAndConsume(char *op);
+Token *consumeIdent();
 void debug_token();
 void expect(char *op);
 int expect_number();
@@ -78,3 +89,4 @@ Node *new_node_num(int val);
 
 // codegen
 void codegen(Node *node);
+void codegenFirst(Node *node);
