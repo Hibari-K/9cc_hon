@@ -5,12 +5,11 @@ void gen_addr(Node *node){
 
     if(node->kind == ND_VAR){
 
-        int offset = (node->name - 'a' + 1) * 8;
-    
+        //int offset = (node->name - 'a' + 1) * 8;
         //fprintf(stderr, "gen_addr: %c\n", node->name);
-        //fprintf(stderr, "gen_addr: %d\n", offset);
+        //fprintf(stderr, "gen_addr: %d\n", node->lvar->offset);
 
-        printf("    lea rax, [rbp-%d]\n", offset);
+        printf("    lea rax, [rbp-%d]\n", node->lvar->offset);
         puts("    push rax");
 
         return;

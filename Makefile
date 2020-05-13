@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c11 -g -static
+CFLAGS=-std=gnu11 -g -static
 TARGET=9cc
 SRCS=$(wildcard *.c)
 OBJS:=$(SRCS:.c=.o)

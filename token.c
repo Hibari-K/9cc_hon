@@ -1,5 +1,6 @@
 #include "9cc.h"
 
+LVar *locals;
 
 
 
@@ -117,7 +118,6 @@ bool at_eof(){
 
 /****   Token    ****/
 
-
 // create new token and append to cur
 Token *new_token(TokenKind kind, Token *cur, char *str, int len){
 
@@ -130,6 +130,17 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len){
     return tok;
 }
 
+// find local var by name, if not, return NULL
+LVar *find_lvar(Token *tok){
+
+    for(LVar *var = locals; var; var = var->next){
+
+        if(strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
+            return var;
+    }
+
+    return NULL;
+}
 
 bool startswith(char *p, char *q){
     return memcmp(p, q, strlen(q)) == 0;
@@ -193,9 +204,22 @@ Token *tokenize(char *p){
             continue;
         }
 
-        // the variable length is 1 so far
+
+        // tokenize variable length of var
         if('a' <= *p && *p <= 'z'){
-            cur = new_token(TK_IDENT, cur, p++, 1);
+
+            int len = 0;
+            char *q = p;
+            for(; !ispunct(*q) && !isspace(*q); q++); // This code forgets '\t'
+
+            len = q - p;
+
+            //debug
+            //fprintf(stderr, "tokenize variable:  %s, len == %d\n", p, len);
+
+            cur = new_token(TK_IDENT, cur, p, len);
+            p += len;
+
             continue;
         }
 

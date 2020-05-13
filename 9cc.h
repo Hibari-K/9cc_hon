@@ -48,14 +48,26 @@ typedef enum{
 
 typedef struct Node Node;
 
+// local variable
+typedef struct LVar LVar;
+struct LVar{
+    LVar *next;
+    char *name;
+    int offset;
+};
+
+extern LVar *locals;
+
 // AST node type
 struct Node{
     NodeKind kind;
     Node *next;
     Node *lhs; // left hand side
     Node *rhs; // right hand side
-    long val; // used if ND_NUM
-    char name; // used if ND_LVAR
+    long val; // used for ND_NUM
+    LVar *lvar;
+    char name; // used for ND_VAR
+    int offset; // used for LD_VAR
 };
 
 
@@ -82,6 +94,7 @@ int expect_number();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 bool startswith(char *p, char *q);
+LVar *find_lvar(Token *tok);
 Token *tokenize(char *p);
 Node *new_binary(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);

@@ -30,6 +30,7 @@ Node *new_binary(NodeKind kind, Node *lhs, Node *rhs){
 // create new num node
 Node *new_node_num(int val){
 
+    //fprintf(stderr, "it will be number: %d\n", val);
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
     node->val = val;
@@ -37,10 +38,10 @@ Node *new_node_num(int val){
     return node;
 }
 
-Node *new_node_var(char name){
+Node *new_node_var(LVar *lvar){
 
     Node *node = new_node(ND_VAR);
-    node->name = name;
+    node->lvar = lvar;
 
     return node;
 }
@@ -51,6 +52,24 @@ Node *new_unary(NodeKind kind, Node *expr){
     node->lhs = expr;
 
     return node;
+}
+
+LVar *new_lvar(char *name, int len){
+
+    LVar *var = calloc(1, sizeof(LVar));
+    var->next = locals;
+    //var->name = name;
+    //strncpy(var->name, name, len);
+    var->name = strndup(name, len);
+
+    if(!locals)
+        var->offset = 0;
+    else
+        var->offset = locals->offset + 8;
+
+    locals = var;
+    
+    return var;
 }
 
 /*
@@ -71,6 +90,7 @@ Node *program(){
     
     Node head = {};
     Node *cur = &head;
+    locals = NULL;
 
     while(!at_eof()){
         cur->next = stmt();
@@ -208,8 +228,30 @@ Node *primary(){
 
 
     Token *tok = consumeIdent();
-    if(tok)
-        return new_node_var(*tok->str);
+    if(tok){
+
+        //Node *node = calloc(1, sizeof(Node));
+        //node->kind = ND_VAR;
+
+        LVar *lvar = find_lvar(tok);
+        if(!lvar){
+            
+            //lvar = calloc(1, sizeof(LVar));
+            //lvar->next = locals;
+            //lvar->name = tok->str;
+            //lvar->len = tok->len;
+            //lvar->offset = locals->offset + 8;
+            //locals = lvar;
+            lvar = new_lvar(tok->str, tok->len);
+            
+            // debug
+            //fprintf(stderr, "find_lvar: lvar == %s\n", lvar->name);
+
+        }
+
+        return new_node_var(lvar);
+    }
+        
 
     // otherwise, it should be num
     return new_node_num(expect_number());
