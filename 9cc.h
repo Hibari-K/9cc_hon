@@ -38,6 +38,9 @@ typedef enum{
     ND_ASSIGN, // =
     ND_VAR, // local variable
     ND_RETURN, //return
+    ND_IF,
+    ND_FOR,
+    ND_WHILE,
     ND_EXPR_STMT,
     ND_EQ, // ==
     ND_NE, // !=
@@ -68,7 +71,15 @@ struct Node{
     LVar *lvar;
     char name; // used for ND_VAR
     int offset; // used for LD_VAR
+
+    // if
+    Node *cond;
+    Node *then;
+    Node *els;
 };
+
+
+
 
 
 // codegen

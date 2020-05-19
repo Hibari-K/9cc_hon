@@ -74,7 +74,10 @@ LVar *new_lvar(char *name, int len){
 
 /*
 program    = stmt*
-stmt       = expr ";"
+stmt       = expr ";" 
+             | "if" "(" expr ")" stmt ("else" stmt)?
+             | "while" "(" expr ")" stmt
+             | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 expr       = assign
 assign     = equality ("=" assign)?
 equality   = relational ("==" relational | "!=" relational)*
@@ -100,7 +103,13 @@ Node *program(){
     return head.next;
 }
 
-// stmt = "return" expr ";" | expr ";"
+/*
+stmt       =   expr ";" 
+             | "if" "(" expr ")" stmt ("else" stmt)?
+             | "while" "(" expr ")" stmt
+             | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+             | "return" expr? ";"
+*/
 Node *stmt(){
     
     // return
@@ -108,6 +117,26 @@ Node *stmt(){
         
         Node *node = new_unary(ND_RETURN, expr());
         expect(";"); // eat ";"
+
+        return node;
+    }
+
+    // "if" "(" expr ")" stmt ("else" stmt)?
+    if(expectAndConsume("if")){
+        
+        //fprintf(stderr, "*******  stmt if  *******");
+
+        Node *node = new_node(ND_IF);
+        expect("("); //simply eat
+        
+        node->cond = expr();
+        expect(")"); //simply eat
+
+        node->then = stmt();
+        
+        if(expectAndConsume("else")){
+            node->els = stmt();
+        }
 
         return node;
     }

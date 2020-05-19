@@ -172,6 +172,13 @@ Token *tokenize(char *p){
             continue;
         }
 
+        if(startswith(p, "if") && !is_alnum(p[2])){
+
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+            continue;
+        }
+
 
         /* debug */
         //printf("tokenize: %s\n", p);

@@ -1,6 +1,8 @@
 #include "9cc.h"
 
 
+int labelseq = 1;
+
 void gen_addr(Node *node){
 
     if(node->kind == ND_VAR){
@@ -60,7 +62,53 @@ void codegen(Node *node){
             //puts("    ret");
             puts("    jmp .L.return");
             return;
+        case ND_IF: {
+            /*
+                *** cond code ***
+                pop rax <- store a result from cond code
+                cmp rax, 0
+                je  .LelseXXX
+                *** then code ***
+                jmp .LendXXX
+                .LelseXXX
+                *** else code ***
+                .LendXXX
+             */
 
+            int seq = labelseq++;
+
+            //fprintf(stderr, "******** generating if statement *******");
+            
+            // if ... else
+            if(node->els){
+                
+                codegen(node->cond);
+                puts("    pop rax");
+                puts("    cmp rax, 0");
+                printf("    je .L.else.%d\n", seq);
+
+                codegen(node->then);
+                printf("    jmp .L.end.%d\n", seq);
+                
+                printf(".L.else.%d:\n", seq);
+                codegen(node->els);
+
+                printf(".L.end.%d:\n", seq);
+            }
+            // only if
+            else{
+                
+                codegen(node->cond);
+                puts("    pop rax");
+                puts("    cmp rax, 0");
+                printf("    je .L.end.%d\n", seq);
+
+                codegen(node->then);
+                printf(".L.end.%d:\n", seq);
+            }
+
+            return;
+        }
     }
 
     codegen(node->lhs);

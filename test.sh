@@ -60,7 +60,11 @@ assert 8 'a=3; z=5; return a+z;'
 assert 8 'foo=3; bar=5; return foo+bar;'
 assert 10 'hoge=2; fuga=3; piyo=hoge+fuga; return piyo+piyo;'
 
-
+assert 3 'if (0) return 2; return 3;'
+assert 3 'if (1-1) return 2; return 3;'
+assert 2 'if (1) return 2; return 3;'
+assert 2 'if (2-1) return 2; return 3;'
+assert 1 'a=2; b=3; if (a+b==5) return 1; return 0;'
 
 
 
