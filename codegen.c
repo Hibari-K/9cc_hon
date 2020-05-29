@@ -109,6 +109,25 @@ void codegen(Node *node){
 
             return;
         }
+
+        case ND_WHILE: {
+
+            int seq = labelseq++;
+
+            printf(".L.begin.%d:\n", seq);
+            
+            codegen(node->cond);
+            puts("    pop rax");
+            puts("    cmp rax, 0");
+            printf("    je .L.end.%d\n", seq);
+
+            codegen(node->then);
+            printf("    jmp .L.begin.%d\n", seq);
+
+            printf(".L.end.%d:\n", seq);
+
+            return;
+        }
     }
 
     codegen(node->lhs);

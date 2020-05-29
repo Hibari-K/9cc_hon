@@ -146,6 +146,31 @@ bool startswith(char *p, char *q){
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+char *starts_with_reserved(char *p){
+
+    // keywords
+    char *kw[] = {"return", "if", "else", "while"};
+
+    for(int i = 0; i < sizeof(kw) / sizeof(*kw); i++){
+        
+        int len = strlen(kw[i]);
+        if(startswith(p, kw[i]) && !is_alnum(p[len])){
+            return kw[i];
+        }
+    }
+
+    // multi-letter punctuator
+    char *ops[] = {"==", "!=", "<=", ">="};
+
+    for(int i = 0; i < sizeof(ops) / sizeof(*ops); i++){
+        if(startswith(p, ops[i])){
+            return ops[i];
+        }
+    }
+
+    return NULL;
+}
+
 
 Token *tokenize(char *p){
     Token head;
@@ -160,6 +185,8 @@ Token *tokenize(char *p){
             continue;
         }
 
+
+        /****************
 
         // keywords
         // the latter avoids variable similar to "return" (e.g., "return1")
@@ -180,13 +207,24 @@ Token *tokenize(char *p){
         }
 
 
-        /* debug */
+        // debug 
         //printf("tokenize: %s\n", p);
         // multi-letter punctuator
         if(startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")){
 
             cur = new_token(TK_RESERVED, cur, p, 2);
             p += 2;
+            continue;
+        }
+
+        ****************/
+
+        // keywords
+        char *kw = starts_with_reserved(p);
+        if(kw){
+            int len = strlen(kw);
+            cur = new_token(TK_RESERVED, cur, p, len);
+            p += len;
             continue;
         }
 

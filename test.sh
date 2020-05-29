@@ -65,6 +65,9 @@ assert 3 'if (1-1) return 2; return 3;'
 assert 2 'if (1) return 2; return 3;'
 assert 2 'if (2-1) return 2; return 3;'
 assert 1 'a=2; b=3; if (a+b==5) return 1; return 0;'
+assert 2 'a=2; b=4; if (a+b==5) return 1;  else return 2; return 0;'
+
+assert 10 'i=0; while(i<10) i=i+1; return i;'
 
 
 

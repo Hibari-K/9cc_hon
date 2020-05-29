@@ -106,7 +106,7 @@ Node *program(){
 /*
 stmt       =   expr ";" 
              | "if" "(" expr ")" stmt ("else" stmt)?
-             | "while" "(" expr ")" stmt
+             | "while" "(" expr ")" stmt 
              | "for" "(" expr? ";" expr? ";" expr? ")" stmt
              | "return" expr? ";"
 */
@@ -138,6 +138,22 @@ Node *stmt(){
             node->els = stmt();
         }
 
+        return node;
+    }
+
+    // "while"
+    if(expectAndConsume("while")){
+
+        //debug
+        //fprintf(stderr, "***** parse while stmt *****\n");
+
+        Node *node = new_node(ND_WHILE);
+        expect("("); // simpl eat
+        node->cond = expr();
+        expect(")");
+
+        node->then = stmt();
+        
         return node;
     }
 
