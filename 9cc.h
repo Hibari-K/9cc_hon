@@ -42,6 +42,7 @@ typedef enum{
     ND_FOR,
     ND_WHILE,
     ND_BLOCK, // { ... } block
+    ND_FUNCALL, // function call
     ND_EXPR_STMT,
     ND_EQ, // ==
     ND_NE, // !=
@@ -70,8 +71,8 @@ struct Node{
     Node *rhs; // right hand side
     long val; // used for ND_NUM
     LVar *lvar;
-    char name; // used for ND_VAR
-    int offset; // used for LD_VAR
+    //char name; // used for ND_VAR
+    //int offset; // used for LD_VAR
 
     // if, while, and for
     Node *cond;
@@ -82,6 +83,8 @@ struct Node{
     Node *inc; // for
 
     Node *body; // block
+
+    char *funcname;
 };
 
 
