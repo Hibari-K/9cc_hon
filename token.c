@@ -53,7 +53,7 @@ void error_at(char *loc, char *fmt, ...){
 
 
 // eat symbol and return true
-// otherwise, do not eat and return false
+// otherwise, **DO NOT** eat and return false
 bool expectAndConsume(char *op){
 
     if(token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
@@ -149,7 +149,7 @@ bool startswith(char *p, char *q){
 char *starts_with_reserved(char *p){
 
     // keywords
-    char *kw[] = {"return", "if", "else", "while"};
+    char *kw[] = {"return", "if", "else", "while", "for"};
 
     for(int i = 0; i < sizeof(kw) / sizeof(*kw); i++){
         

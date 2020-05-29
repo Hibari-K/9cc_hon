@@ -72,10 +72,13 @@ struct Node{
     char name; // used for ND_VAR
     int offset; // used for LD_VAR
 
-    // if and while
+    // if, while, and for
     Node *cond;
     Node *then;
     Node *els;
+
+    Node *init; // for
+    Node *inc; // for
 };
 
 

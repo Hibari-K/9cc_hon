@@ -128,6 +128,35 @@ void codegen(Node *node){
 
             return;
         }
+
+        case ND_FOR: {
+
+            int seq = labelseq++;
+
+            // for( *** ;;)
+            if(node->init){
+                codegen(node->init);
+            }
+
+            printf(".L.begin.%d:\n", seq);
+            if(node->cond){
+                codegen(node->cond);
+                puts("    pop rax");
+                puts("    cmp rax, 0");
+                printf("    je .L.end.%d\n", seq);
+            }
+
+            codegen(node->then);
+
+            if(node->inc){
+                codegen(node->inc);
+            }
+
+            printf("    jmp .L.begin.%d\n", seq);
+            printf(".L.end.%d:\n", seq);
+
+            return;
+        }
     }
 
     codegen(node->lhs);

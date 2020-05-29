@@ -157,6 +157,32 @@ Node *stmt(){
         return node;
     }
 
+    // for
+    if(expectAndConsume("for")){
+
+        Node *node = new_node(ND_FOR);
+
+        expect("(");
+        // there is the possibility of "for(;;)"
+        if(!expectAndConsume(";")){
+            node->init = expr();
+            expect(";");
+        }
+        
+        if(!expectAndConsume(";")){
+            node->cond = expr();
+            expect(";");
+        }
+
+        if(!expectAndConsume(")")){
+            node->inc = expr();
+            expect(")");
+        }
+
+        node->then = stmt();
+        return node;
+    }
+
     // other
     Node *node = expr();
     expectAndConsume(";");
