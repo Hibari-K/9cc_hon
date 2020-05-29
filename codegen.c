@@ -176,7 +176,24 @@ void codegen(Node *node){
                 printf("    pop %s\n", argreg[i]);
             }
 
+            // we need to align RSP to a 16 byte boundary before calling a function
+            // because it is an ABI requirement.
+            // RAX is set to 0 for variadic function
+            int seq = labelseq++;
+            puts("    mov rax, rsp");
+            puts("    and rax, 15");
+            printf("    jnz .L.call.%d\n", seq); // if 8byte boundary
+            puts("    mov rax, 0"); // the number of floating point arguments
             printf("    call %s\n", node->funcname);
+            printf("    jmp .L.end.%d\n", seq);
+
+            printf(".L.call.%d:\n", seq); // if 8byte boundary
+            puts("    sub rsp, 8");
+            puts("    mov rax, 0");
+            printf("    call %s\n", node->funcname);
+            puts("    add rsp, 8"); // to make consistent to sub
+            
+            printf(".L.end.%d:\n", seq);
             puts("    push rax");
             return;
 
