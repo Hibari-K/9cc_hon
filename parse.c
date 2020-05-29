@@ -88,7 +88,7 @@ add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
 primary    = num | ident args? | "(" expr ")"
-args       = "(" ")"
+args       = "(" (assign ("," assign)* )? ")"
 */
 
 
@@ -324,16 +324,15 @@ Node *primary(){
         // if function call (Ident "(" ")")
         if(expectAndConsume("(")){
 
-            expect(")");
+            // expect(")"); // this line targets only for func without args
             
             Node *node = new_node(ND_FUNCALL);
             node->funcname = strndup(tok->str, tok->len);
+            node->args = args();
 
             return node;
         }
 
-        //Node *node = calloc(1, sizeof(Node));
-        //node->kind = ND_VAR;
 
         LVar *lvar = find_lvar(tok);
         if(!lvar){
@@ -359,7 +358,26 @@ Node *primary(){
     return new_node_num(expect_number());
 }
 
+Node *args(){
 
+    // it assumes here is in parentheses of func. (i.e., foo( ... HERE ... ) )
+    if(expectAndConsume(")")){
+        return NULL;
+    }
+
+    Node *head = assign(); // first arg
+    Node *cur = head;
+
+    while(expectAndConsume(",")){
+        cur->next = assign();
+        cur = cur->next;
+    }
+
+    expect(")"); // just eat
+
+    return head;
+
+}
 
 
 

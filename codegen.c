@@ -2,6 +2,7 @@
 
 
 int labelseq = 1;
+char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_addr(Node *node){
 
@@ -164,10 +165,24 @@ void codegen(Node *node){
             }
             return;
         
-        case ND_FUNCALL:
+        case ND_FUNCALL:{
+            int nargs = 0;
+            for(Node *arg = node->args; arg; arg = arg->next){
+                codegen(arg);
+                nargs++;
+            }
+
+            for(int i = nargs - 1; i >= 0; i--){
+                printf("    pop %s\n", argreg[i]);
+            }
+
             printf("    call %s\n", node->funcname);
             puts("    push rax");
             return;
+
+        }
+
+
     }
 
     codegen(node->lhs);

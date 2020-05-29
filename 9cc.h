@@ -85,6 +85,7 @@ struct Node{
     Node *body; // block
 
     char *funcname; // function
+    Node *args; // function
 };
 
 
@@ -92,6 +93,7 @@ struct Node{
 
 
 // codegen
+Node* args();
 Node* primary();
 Node* unary();
 Node* mul();
