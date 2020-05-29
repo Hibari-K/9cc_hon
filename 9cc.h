@@ -84,7 +84,7 @@ struct Node{
 
     Node *body; // block
 
-    char *funcname;
+    char *funcname; // function
 };
 
 

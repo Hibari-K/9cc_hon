@@ -163,6 +163,11 @@ void codegen(Node *node){
                 codegen(n);
             }
             return;
+        
+        case ND_FUNCALL:
+            printf("    call %s\n", node->funcname);
+            puts("    push rax");
+            return;
     }
 
     codegen(node->lhs);

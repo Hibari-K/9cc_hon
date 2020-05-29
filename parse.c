@@ -78,6 +78,8 @@ stmt       = expr ";"
              | "if" "(" expr ")" stmt ("else" stmt)?
              | "while" "(" expr ")" stmt
              | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+             | "{" stmt* "}"
+             | "return" expr? ";"
 expr       = assign
 assign     = equality ("=" assign)?
 equality   = relational ("==" relational | "!=" relational)*
@@ -85,7 +87,8 @@ relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
-primary    = num | ident | "(" expr ")"
+primary    = num | ident args? | "(" expr ")"
+args       = "(" ")"
 */
 
 
@@ -304,7 +307,7 @@ Node* unary(){
 
 
 
-// primary = "(" expr ")" | num | ident
+// primary = "(" expr ")" | num | ident args?
 Node *primary(){
 
     // if next token is "(", the expected node is '"(" expr ")"'
@@ -317,6 +320,17 @@ Node *primary(){
 
     Token *tok = consumeIdent();
     if(tok){
+
+        // if function call (Ident "(" ")")
+        if(expectAndConsume("(")){
+
+            expect(")");
+            
+            Node *node = new_node(ND_FUNCALL);
+            node->funcname = strndup(tok->str, tok->len);
+
+            return node;
+        }
 
         //Node *node = calloc(1, sizeof(Node));
         //node->kind = ND_VAR;
