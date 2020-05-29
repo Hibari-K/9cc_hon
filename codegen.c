@@ -157,6 +157,12 @@ void codegen(Node *node){
 
             return;
         }
+        
+        case ND_BLOCK:
+            for(Node *n = node->body; n; n = n->next){
+                codegen(n);
+            }
+            return;
     }
 
     codegen(node->lhs);

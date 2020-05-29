@@ -108,6 +108,7 @@ stmt       =   expr ";"
              | "if" "(" expr ")" stmt ("else" stmt)?
              | "while" "(" expr ")" stmt 
              | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+             | "{" stmt* "}"
              | "return" expr? ";"
 */
 Node *stmt(){
@@ -180,6 +181,22 @@ Node *stmt(){
         }
 
         node->then = stmt();
+        return node;
+    }
+
+    // block { ... }
+    if(expectAndConsume("{")){
+        Node head = {}; // must be var not pointer
+        Node *cur = &head;
+
+        while(!expectAndConsume("}")){
+            cur->next = stmt();
+            cur = cur->next;
+        }
+
+        Node *node = new_node(ND_BLOCK);
+        node->body = head.next;
+
         return node;
     }
 

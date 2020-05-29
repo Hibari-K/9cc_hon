@@ -67,10 +67,15 @@ assert 2 'if (2-1) return 2; return 3;'
 assert 1 'a=2; b=3; if (a+b==5) return 1; return 0;'
 assert 2 'a=2; b=4; if (a+b==5) return 1;  else return 2; return 0;'
 
+assert 3 '{1; {2;} return 3;}'
+
 assert 10 'i=0; while(i<10) i=i+1; return i;'
+assert 55 'i=0; j=0; while(i <= 10) { j=i+j; i=i+1; } return j;'
 
 assert 55 'i=0; j=0; for(i=0; i<=10; i=i+1) j=i+j; return j;'
 assert 3 'for(;;) return 3; return 5;'
+
+
 
 
 
