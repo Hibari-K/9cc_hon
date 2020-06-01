@@ -3,6 +3,7 @@
 
 int labelseq = 1;
 char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *funcname;
 
 void gen_addr(Node *node){
 
@@ -12,7 +13,7 @@ void gen_addr(Node *node){
         //fprintf(stderr, "gen_addr: %c\n", node->name);
         //fprintf(stderr, "gen_addr: %d\n", node->lvar->offset);
 
-        printf("    lea rax, [rbp-%d]\n", node->lvar->offset);
+        printf("    lea rax, [rbp-%d]\n", node->var->offset);
         puts("    push rax");
 
         return;
@@ -61,7 +62,7 @@ void codegen(Node *node){
             codegen(node->lhs);
             puts("    pop rax");
             //puts("    ret");
-            puts("    jmp .L.return");
+            printf("    jmp .L.return.%s\n", funcname);
             return;
         case ND_IF: {
             /*
@@ -249,27 +250,40 @@ void codegen(Node *node){
 }
 
 
-void codegenFirst(Node *node){
+void codegenFirst(Function *prog){
     
-    printf(".intel_syntax noprefix\n" \
-           ".global main\n" \
-           "main:\n");
+    printf(".intel_syntax noprefix\n");
 
-    
-    // Prologue
-    
-    printf("    push rbp\n" \
-           "    mov rbp, rsp\n" \
-           "    sub rsp, 208\n");
-    
+    for(Function *fn = prog; fn; fn = fn->next){
 
-    for(Node *n = node; n; n = n->next){
-        codegen(n);
-        puts("    pop rax");
+        printf(".global %s\n", fn->name);
+        printf("%s:\n", fn->name);
+
+        funcname = fn->name;
+
+        // prologue
+        puts("    push rbp");
+        puts("    mov rbp, rsp");
+        printf("    sub rsp, %d\n", fn->stack_size);
+
+        // Push arguments to the stack
+        int i = 0;
+        for(VarList *vl = fn->params; vl; vl = vl->next){
+            Var *var = vl->var;
+            printf("    mov [rbp-%d], %s\n", var->offset, argreg[i++]);
+        }
+
+
+        // code
+        for(Node *node = fn->node; node; node = node->next){
+            codegen(node);
+        }
+
+        // Epilogue
+        printf(".L.return.%s:\n", funcname);
+        puts("    mov rsp, rbp");
+        puts("    pop rbp");
+        puts("    ret");
+
     }
-
-    puts(".L.return:");
-    puts("    mov rsp, rbp");
-    puts("    pop rbp");
-    puts("    ret");
 }

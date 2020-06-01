@@ -53,15 +53,31 @@ typedef enum{
 
 typedef struct Node Node;
 
-// local variable
-typedef struct LVar LVar;
-struct LVar{
-    LVar *next;
+typedef struct Var Var;
+struct Var{
     char *name;
     int offset;
 };
 
-extern LVar *locals;
+// local variable
+typedef struct VarList VarList;
+struct VarList{
+    VarList *next;
+    Var *var;
+};
+
+extern VarList *locals;
+
+typedef struct Function Function;
+struct Function{
+    Function *next;
+    char *name;
+    VarList *params;
+
+    Node *node;
+    VarList *locals;
+    int stack_size;
+};
 
 // AST node type
 struct Node{
@@ -70,7 +86,7 @@ struct Node{
     Node *lhs; // left hand side
     Node *rhs; // right hand side
     long val; // used for ND_NUM
-    LVar *lvar;
+    Var *var;
     //char name; // used for ND_VAR
     //int offset; // used for LD_VAR
 
@@ -103,7 +119,8 @@ Node* equality();
 Node* assign();
 Node* expr();
 Node* stmt();
-Node* program();
+Function* function();
+Function* program();
 
 // parse
 void error(char *str);
@@ -113,10 +130,11 @@ Token *consumeIdent();
 void debug_token();
 void expect(char *op);
 int expect_number();
+char *expect_ident();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 bool startswith(char *p, char *q);
-LVar *find_lvar(Token *tok);
+Var *find_lvar(Token *tok);
 Token *tokenize(char *p);
 Node *new_binary(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
@@ -124,4 +142,4 @@ Node *new_node_num(int val);
 
 // codegen
 void codegen(Node *node);
-void codegenFirst(Node *node);
+void codegenFirst(Function *prog);

@@ -38,10 +38,10 @@ Node *new_node_num(int val){
     return node;
 }
 
-Node *new_node_var(LVar *lvar){
+Node *new_node_var(Var *var){
 
     Node *node = new_node(ND_VAR);
-    node->lvar = lvar;
+    node->var = var;
 
     return node;
 }
@@ -54,10 +54,10 @@ Node *new_unary(NodeKind kind, Node *expr){
     return node;
 }
 
-LVar *new_lvar(char *name, int len){
+Var *new_lvar(char *name, int len){
 
-    LVar *var = calloc(1, sizeof(LVar));
-    var->next = locals;
+    Var *var = calloc(1, sizeof(Var));
+    //var->next = locals;
     //var->name = name;
     //strncpy(var->name, name, len);
     var->name = strndup(name, len);
@@ -65,15 +65,20 @@ LVar *new_lvar(char *name, int len){
     if(!locals)
         var->offset = 0;
     else
-        var->offset = locals->offset + 8;
+        var->offset = locals->var->offset + 8;
 
-    locals = var;
+    //locals = var;
+    VarList *vl = calloc(1, sizeof(VarList));
+    vl->var = var;
+    vl->next = locals;
+    locals = vl;
     
     return var;
 }
 
 /*
-program    = stmt*
+program    = function*
+function   = ident "(" ")" "{" stmt* "}"
 stmt       = expr ";" 
              | "if" "(" expr ")" stmt ("else" stmt)?
              | "while" "(" expr ")" stmt
@@ -92,18 +97,73 @@ args       = "(" (assign ("," assign)* )? ")"
 */
 
 
-Node *program(){
+Function *program(){
     
-    Node head = {};
-    Node *cur = &head;
+    Function head = {};
+    Function *cur = &head;
     locals = NULL;
 
     while(!at_eof()){
-        cur->next = stmt();
+        cur->next = function();
         cur = cur->next;
     }
     
     return head.next;
+}
+
+// params = ident ( "," ident)*
+VarList *read_func_params(){
+
+    if(expectAndConsume(")")){
+        return NULL;
+    }
+
+    VarList *head = calloc(1, sizeof(VarList));
+    
+    char *s = expect_ident();
+    head->var = new_lvar(s, strlen(s));
+    VarList *cur = head;
+
+    while(!expectAndConsume(")")){
+        expect(",");
+        
+        cur->next = calloc(1, sizeof(VarList));
+        s = expect_ident();
+        cur->next->var = new_lvar(s, strlen(s));
+        
+        cur = cur->next;
+    }
+
+    return head;
+}
+
+// function = ident "(" params? ")" "{" stmt* "}"
+Function *function(){
+
+    locals = NULL;
+    Function *fn = calloc(1, sizeof(Function));
+    fn->name = expect_ident();
+
+    //char *name = expect_ident();
+    expect("(");
+    fn->params = read_func_params();
+    //expect(")");
+    expect("{");
+
+    Node head = {};
+    Node *cur = &head;
+
+    while(!expectAndConsume("}")){
+        cur->next = stmt();
+        cur = cur->next;
+    }
+
+    //Function *fn = calloc(1, sizeof(Function));
+    //fn->name = name;
+    fn->node = head.next;
+    fn->locals = locals;
+
+    return fn;
 }
 
 /*
@@ -334,8 +394,8 @@ Node *primary(){
         }
 
 
-        LVar *lvar = find_lvar(tok);
-        if(!lvar){
+        Var *var = find_lvar(tok);
+        if(!var){
             
             //lvar = calloc(1, sizeof(LVar));
             //lvar->next = locals;
@@ -343,14 +403,14 @@ Node *primary(){
             //lvar->len = tok->len;
             //lvar->offset = locals->offset + 8;
             //locals = lvar;
-            lvar = new_lvar(tok->str, tok->len);
+            var = new_lvar(tok->str, tok->len);
             
             // debug
             //fprintf(stderr, "find_lvar: lvar == %s\n", lvar->name);
 
         }
 
-        return new_node_var(lvar);
+        return new_node_var(var);
     }
         
 

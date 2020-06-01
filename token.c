@@ -1,6 +1,6 @@
 #include "9cc.h"
 
-LVar *locals;
+VarList *locals;
 
 
 
@@ -109,6 +109,19 @@ int expect_number(){
     return val;
 }
 
+// Ensure that the current token is TK_IDENT
+char *expect_ident(){
+
+    if(token->kind != TK_IDENT){
+        error_at(token->str, "expected an identifier");
+    }
+
+    char *s = strndup(token->str, token->len);
+
+    token = token->next;
+    return s;
+}
+
 bool at_eof(){
     return token->kind == TK_EOF;
 }
@@ -131,10 +144,11 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len){
 }
 
 // find local var by name, if not, return NULL
-LVar *find_lvar(Token *tok){
+Var *find_lvar(Token *tok){
 
-    for(LVar *var = locals; var; var = var->next){
+    for(VarList *vl = locals; vl; vl = vl->next){
 
+        Var *var = vl->var;
         if(strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
             return var;
     }

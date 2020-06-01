@@ -16,5 +16,8 @@ RUN useradd -m $USERNAME \
  && usermod -aG sudo $USERNAME \
  && echo $USERNAME | chsh -s /bin/zsh
 
+RUN apt -y install gdb
 
-
+USER $USERNAME
+RUN git clone https://github.com/longld/peda.git /home/$USERNAME/peda
+RUN echo "source ~/peda/peda.py" >> /home/$USERNAME/.gdbinit
