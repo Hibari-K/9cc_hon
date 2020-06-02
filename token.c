@@ -200,39 +200,6 @@ Token *tokenize(char *p){
         }
 
 
-        /****************
-
-        // keywords
-        // the latter avoids variable similar to "return" (e.g., "return1")
-        if(startswith(p, "return") && !is_alnum(p[6])){ 
-            
-            //puts("tokenize: return");
-
-            cur = new_token(TK_RESERVED, cur, p, 6);
-            p += 6;
-            continue;
-        }
-
-        if(startswith(p, "if") && !is_alnum(p[2])){
-
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
-            continue;
-        }
-
-
-        // debug 
-        //printf("tokenize: %s\n", p);
-        // multi-letter punctuator
-        if(startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")){
-
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
-            continue;
-        }
-
-        ****************/
-
         // keywords
         char *kw = starts_with_reserved(p);
         if(kw){

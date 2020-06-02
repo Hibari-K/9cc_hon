@@ -36,6 +36,8 @@ typedef enum{
     ND_MUL,
     ND_DIV,
     ND_ASSIGN, // =
+    ND_ADDR, // &
+    ND_DEREF, // *
     ND_VAR, // local variable
     ND_RETURN, //return
     ND_IF,

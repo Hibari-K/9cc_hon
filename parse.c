@@ -91,7 +91,7 @@ equality   = relational ("==" relational | "!=" relational)*
 relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
-unary      = ("+" | "-")? primary
+unary      = ("+" | "-" | "*" | "&")? primary
 primary    = num | ident args? | "(" expr ")"
 args       = "(" (assign ("," assign)* )? ")"
 */
@@ -356,12 +356,16 @@ Node *mul(){
     }
 }
 
-// unary = ("+" | "-")? primary
+// unary = ("+" | "-" | "*" | "&")? primary
 Node* unary(){
     if(expectAndConsume("+"))
         return unary(); // +1 = 1
     if(expectAndConsume("-"))
         return new_binary(ND_SUB, new_node_num(0), unary());
+    if(expectAndConsume("&"))
+        return new_unary(ND_ADDR, unary());
+    if(expectAndConsume("*"))
+        return new_unary(ND_DEREF, unary());
     return primary();
 }
 

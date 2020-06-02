@@ -5,10 +5,14 @@ int labelseq = 1;
 char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 char *funcname;
 
+// stack node-var address
 void gen_addr(Node *node){
 
-    if(node->kind == ND_VAR){
 
+    //if(node->kind == ND_VAR){
+    switch(node->kind){
+
+    case ND_VAR:
         //int offset = (node->name - 'a' + 1) * 8;
         //fprintf(stderr, "gen_addr: %c\n", node->name);
         //fprintf(stderr, "gen_addr: %d\n", node->lvar->offset);
@@ -17,11 +21,23 @@ void gen_addr(Node *node){
         puts("    push rax");
 
         return;
+
+
+    case ND_DEREF:
+
+        //fprintf(stderr, "gen_addr *****\n");
+
+        codegen(node->lhs);
+        return;
+
     }
+
+    //fprintf(stderr, "gen_addr : %s\n", node->var->name);
 
     error("not an local value");
 }
 
+// load address stored at stack-top
 void load(){
     
     puts("    pop rax");
@@ -29,6 +45,7 @@ void load(){
     puts("    push rax");
 }
 
+// data (stack-top), store addr (2nd-top)
 void store(){
     
     puts("    pop rdi");
@@ -63,6 +80,13 @@ void codegen(Node *node){
             puts("    pop rax");
             //puts("    ret");
             printf("    jmp .L.return.%s\n", funcname);
+            return;
+        case ND_ADDR: //&
+            gen_addr(node->lhs);
+            return;
+        case ND_DEREF: //*
+            codegen(node->lhs);
+            load();
             return;
         case ND_IF: {
             /*
@@ -252,7 +276,7 @@ void codegen(Node *node){
 
 void codegenFirst(Function *prog){
     
-    printf(".intel_syntax noprefix\n");
+    puts(".intel_syntax noprefix");
 
     for(Function *fn = prog; fn; fn = fn->next){
 
